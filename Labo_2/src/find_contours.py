@@ -1,31 +1,45 @@
 import cv2
 import os
 
+good_prediction = 0
+bad_prediction = 0
+
 for i in os.listdir('./Labo_2/data') :
     for j in os.listdir('./Labo_2/data/' + str(i)) :
         index = 0
         for k in os.listdir('./Labo_2/data/' + str(i) + '/' + str(j)) :
             index += 1
-            if index < 5 :
+            if index < 10000 :
                 image = cv2.imread('./Labo_2/data/' + str(i) + '/' + str(j) + '/' + str(k))
-                img_reduce = cv2.resize(image, dsize=(320,140), interpolation=cv2.INTER_AREA)
-                img_gray = cv2.cvtColor(img_reduce, cv2.COLOR_BGR2GRAY)
-                # apply binary thresholding
-                #thresh = cv2.adaptiveThreshold(img_gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 4, 2)
+                img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                 img_blur = cv2.GaussianBlur(img_gray, (9,9), 0)
-                edged = cv2.Canny(img_blur, 30,200)
-                #tr, edged = cv2.threshold(img_blur, 100, 255, cv2.THRESH_BINARY_INV)
+                edged = cv2.Canny(img_blur, 30,120)
 
                 contours, hierarchy = cv2.findContours(edged, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-                img_output = img_reduce
+                img_output = img_gray
+
+                nb_contours = 0
+                x,y,w,h = 0,0,0,0
+
                 for c in contours :
                     area = cv2.contourArea(c)
-                    if area > 300 :
-                        #img_output = cv2.drawContours(img_reduce, contours, -1, (0,255,0), 1)
+                    if area > 400 :
+                        nb_contours += 1
                         x,y,w,h = cv2.boundingRect(c)
-                        cv2.rectangle(img_output, (x, y), (x + w, y + h), (36, 255, 12), 2)
+                        #cv2.rectangle(img_output, (x, y), (x + w, y + h), (36, 255, 12), 2) crée une bbox verte
 
-                os.makedirs('./Labo_2/output/' + str(i) + '/' + str(j) + '/', exist_ok=True)
-                cv2.imwrite('./Labo_2/output/' + str(i) + '/' + str(j) + '/' + str(k), img_output)
-                #print(contours)
+                os.makedirs('./Labo_2/output/predict/' + str(i) + '/' + str(j) + '/', exist_ok=True)
+                os.makedirs('./Labo_2/output/error/' + str(i) + '/' + str(j) + '/', exist_ok=True)
+                if (nb_contours == 1) :
+                    img_output = image[y:y+h,x:x+w]
+                    img_output = cv2.resize(img_output,dsize=(40,40), interpolation=cv2.INTER_AREA)
+                    cv2.imwrite('./Labo_2/output/predict/' + str(i) + '/' + str(j) + '/' + str(k), img_output)
+                    good_prediction += 1
+                else :
+                    bad_prediction += 1
+                    cv2.imwrite('./Labo_2/output/error/' + str(i) + '/' + str(j) + '/' + str(k), img_output)
+
+print("ratio : " + str(good_prediction*100/(good_prediction+bad_prediction))[:5] + " %\n")
+print("good : " + str(good_prediction) + "\n")
+print("bad : " + str(bad_prediction) + "\n")
