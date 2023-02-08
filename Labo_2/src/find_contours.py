@@ -13,11 +13,11 @@ bad_prediction = 0
 for i in os.listdir(data_dir) :
     for j in os.listdir(data_dir + str(i)) :
         index = 0
-        for k in os.listdir('./Labo_2/data/' + str(i) + '/' + str(j)) :
+        for k in os.listdir(data_dir + str(i) + '/' + str(j)) :
             if not os.path.isfile(clean_data_folder + str(i) + '/' + str(j) + '/' + str(k)):
                 index += 1
                 if index < 10000 :
-                    image = cv2.imread('./Labo_2/data/' + str(i) + '/' + str(j) + '/' + str(k))
+                    image = cv2.imread(data_dir + str(i) + '/' + str(j) + '/' + str(k))
                     img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                     img_blur = cv2.GaussianBlur(img_gray, (9,9), 0)
                     edged = cv2.Canny(img_blur, 30,120)
