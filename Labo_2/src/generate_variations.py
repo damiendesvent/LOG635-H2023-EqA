@@ -1,6 +1,6 @@
 import cv2
 
-# returns 8 tuples (name_prefix, image)
+# returns 8 tuples (name_suffix, image)
 def generate_variations(image):
     return (
         ('', image),
