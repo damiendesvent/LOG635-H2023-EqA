@@ -1,5 +1,5 @@
 import numpy as np
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 class NeuralNetwork():
     def __init__(self, layers=[13,8,1], learning_rate=0.001, iterations=100):
@@ -36,8 +36,8 @@ class NeuralNetwork():
 
     def entropy_loss(self, y, yhat):
         nsample = len(y)
-        yhat_inv = 1.0 - yhat
-        y_inv = 1.0 - y
+        yhat_inv = 1 - yhat
+        y_inv = 1 - y
         yhat = self.eta(yhat)
         yhat_inv = self.eta(yhat_inv) 
         loss = -1/nsample * (np.sum(np.multiply(np.log(yhat), y) + np.multiply((y_inv), np.log(yhat_inv))))
