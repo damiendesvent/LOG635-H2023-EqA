@@ -51,7 +51,3 @@ for i in os.listdir(data_dir) :
                     img_output = cv2.resize(img_output,dsize=(40,40), interpolation=cv2.INTER_AREA)
                     cv2.imwrite(clean_data_folder + str(i) + '/' + str(j) + '/' + str(k), img_output)
                     good_prediction += 1
-                    
-# print("ratio : " + str(good_prediction*100/(good_prediction+bad_prediction))[:5] + " %\n")
-# print("good : " + str(good_prediction) + "\n")
-# print("bad : " + str(bad_prediction) + "\n")
