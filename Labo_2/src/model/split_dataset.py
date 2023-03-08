@@ -37,6 +37,7 @@ def split_dataset(data_root, categories):
     for filepath in modulo_shuffle(files, 305):
         label = basename(dirname(filepath))
         y_vector = one_hot_encode(label, categories)
+        cv2.imread(filepath, cv2.Gray)
         image = cv2.cvtColor(cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2GRAY)
         if len(ytest) < test_set_size:
             Xtest.append(image)

@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from tabulate import tabulate
 
 class NeuralNetwork():
     def __init__(self, nb_input_nodes, nb_hidden_nodes, nb_output_nodes, learning_rate):
@@ -30,8 +29,9 @@ class NeuralNetwork():
     #     return self.sigmoid(z) * (1 - self.sigmoid(z))
 
     def entropy_loss(self, y, y_pred):
-        eps = np.finfo(float).eps = 0
-        loss = -np.sum(y * np.log(y_pred + eps) + (1 - y) * np.log(1 - y_pred + eps))
+        N = y.shape[0]
+        eps = np.finfo(float).eps
+        loss = -np.sum(y * np.log(y_pred + eps) + (1 - y) * np.log(1 - y_pred + eps)) / N
         return loss
     
     # def derivative_entropy_loss(self, y, y_pred):
