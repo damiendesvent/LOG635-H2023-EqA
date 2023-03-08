@@ -1,108 +1,116 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tabulate import tabulate
 
 class NeuralNetwork():
-    def __init__(self, layers=[13,8,1], learning_rate=0.001, iterations=100):
-        self.params = {}
+    def __init__(self, nb_input_nodes, nb_hidden_nodes, nb_output_nodes, learning_rate):
+        #  >>> HYPERPARAMETERS <<<
+        self.nb_input_nodes = nb_input_nodes
+        self.nb_output_nodes = nb_output_nodes
+        self.nb_hidden_nodes = nb_hidden_nodes
         self.learning_rate = learning_rate
-        self.iterations = iterations
-        self.loss = []
-        self.sample_size = None
-        self.layers = layers
-        self.X = None
-        self.y = None
-                
-    def init_weights(self):
-        np.random.seed(1) # Seed the random number generator
-        self.params["W1"] = np.random.randn(self.layers[0], self.layers[1]) 
-        self.params['b1'] = np.random.randn(self.layers[1],)
-        self.params['W2'] = np.random.randn(self.layers[1],self.layers[2]) 
-        self.params['b2'] = np.random.randn(self.layers[2],)
-    
-    def relu(self, Z):
-        return np.maximum(0,Z)
+        self.losses = []
 
-    def dRelu(self, x):
-        x[x<=0] = 0
-        x[x>0] = 1
-        return x
+        # >>> WEIGHTS + BIASES <<<
+        # Weight matrix from input to hidden layer
+        self.W1 = np.random.randn(self.nb_input_nodes, self.nb_hidden_nodes)
+        # Bias from input to hidden layer
+        self.b1 = np.random.randn(1, self.nb_hidden_nodes)
 
-    def eta(self, x):
-      ETA = 0.0000000001
-      return np.maximum(x, ETA)
+        # Weight matrix from hidden to output layer
+        self.W2 = np.random.randn(self.nb_hidden_nodes, self.nb_output_nodes)
+        # Bias from hidden to output layer
+        self.b2 = np.random.randn(1, self.nb_output_nodes)
 
-    def sigmoid(self, Z):
-        return 1/(1+np.exp(-Z))
+    def sigmoid(self, z):
+        s = 1 / (1 + np.exp(-z))
+        return s
 
-    def entropy_loss(self, y, yhat):
-        nsample = len(y)
-        yhat_inv = 1 - yhat
-        y_inv = 1 - y
-        yhat = self.eta(yhat)
-        yhat_inv = self.eta(yhat_inv) 
-        loss = -1/nsample * (np.sum(np.multiply(np.log(yhat), y) + np.multiply((y_inv), np.log(yhat_inv))))
+    # def derivative_sigmoid(self, z):
+    #     return self.sigmoid(z) * (1 - self.sigmoid(z))
+
+    def entropy_loss(self, y, y_pred):
+        eps = np.finfo(float).eps = 0
+        loss = -np.sum(y * np.log(y_pred + eps) + (1 - y) * np.log(1 - y_pred + eps))
         return loss
+    
+    # def derivative_entropy_loss(self, y, y_pred):
+    #     eps = np.finfo(float).eps
+    #     return np.divide((1 - y), (1 - y_pred + eps)) - np.divide(y, y_pred + eps)
 
-    def forward_propagation(self):
-        Z1 = self.X.dot(self.params['W1']) + self.params['b1']
-        A1 = self.relu(Z1)
-        Z2 = A1.dot(self.params['W2']) + self.params['b2']
-        yhat = self.sigmoid(Z2)
-        loss = self.entropy_loss(self.y,yhat)
-
-        self.params['Z1'] = Z1
-        self.params['Z2'] = Z2
-        self.params['A1'] = A1
-
-        return yhat,loss
-
-    def back_propagation(self,yhat):
-        y_inv = 1 - self.y
-        yhat_inv = 1 - yhat
-
-        dl_wrt_yhat = np.divide(y_inv, self.eta(yhat_inv)) - np.divide(self.y, self.eta(yhat))
-        dl_wrt_sig = yhat * (yhat_inv)
-        dl_wrt_z2 = dl_wrt_yhat * dl_wrt_sig
-
-        dl_wrt_A1 = dl_wrt_z2.dot(self.params['W2'].T)
-        dl_wrt_w2 = self.params['A1'].T.dot(dl_wrt_z2)
-        dl_wrt_b2 = np.sum(dl_wrt_z2, axis=0, keepdims=True)
-
-        dl_wrt_z1 = dl_wrt_A1 * self.dRelu(self.params['Z1'])
-        dl_wrt_w1 = self.X.T.dot(dl_wrt_z1)
-        dl_wrt_b1 = np.sum(dl_wrt_z1, axis=0, keepdims=True)
-
-        self.params['W1'] = self.params['W1'] - self.learning_rate * dl_wrt_w1
-        self.params['W2'] = self.params['W2'] - self.learning_rate * dl_wrt_w2
-        self.params['b1'] = self.params['b1'] - self.learning_rate * dl_wrt_b1
-        self.params['b2'] = self.params['b2'] - self.learning_rate * dl_wrt_b2
-
-    def fit(self, X, y):
+    def forward(self, X):
+        # Forward propagation through our network
         self.X = X
-        self.y = y
-        self.init_weights()
+        self.Z1 = X @ self.W1 + self.b1
+        self.A1 = self.sigmoid(self.Z1)
+        self.Z2 = self.A1 @ self.W2 + self.b2
+        self.A2 = self.sigmoid(self.Z2)
+        return self.A2
+
+    def backward(self, y):
+        
+        # https://www.youtube.com/watch?v=tIeHLnjs5U8 Backpropagation calculus
+        # https://www.youtube.com/watch?v=x4RNPJD-IkQ Backpropagation: Compute the Derivatives - Part 1
+        # https://www.youtube.com/watch?v=JsbFBJCWbeI Backpropagation: Compute the Derivatives - Part 2
+        # https://www.youtube.com/watch?v=55nIWdjgOJU Code a NN from Scratch
+
+        # dCost_dA3 = self.derivative_entropy_loss(y, self.A3)
+        # dA3_dZ3 = self.A3 * (1 - self.A3) # derivative_sigmoid = s(z) * (1 - s(z)) and s(z_n) = a_n
+        # dCost_dZ3 = self.A3 - y # = dCost_dA3 * dA3_dZ3
+        # dZ3_dW2 = self.A2.T # (20, 1) to outer product with dCost_dZ3 (1, 8)
+        # dZ3_dA2 = self.W2.T
+        # dCost_dW2 = np.dot(dCost_dZ3, dZ3_dW2.T) # self.A3.T 
+        # dCost_dA2 = np.dot(dCost_dZ3, dZ3_dA2)
+        # dCost_db2 = dCost_dZ3 # dZ3_db2 is identity
+
+        # dA2_dZ2 = self.A2 * (1 - self.A2) # derivative_sigmoid = s(z) * (1 - s(z)) and s(z_n) = a_n
+        # dCost_dZ2 = np.multiply(dCost_dA2, dA2_dZ2)
+        # dZ2_dW1 = self.X.T # (1600, 1) to outer product with dCost_dZ3 (1, 20)
+        # dCost_dW1 = np.dot(dZ2_dW1.T, dCost_dZ2)
+        # dCost_db1 = dCost_dZ2 # dZ2_db1 is identity
 
 
-        for i in range(self.iterations):
-            yhat, loss = self.forward_propagation()
-            self.back_propagation(yhat)
-            self.loss.append(loss)
+        # dCost_db2 = np.dot(np.ones(N), (self.A2 - y))
+        # dCost_dW2 = np.dot(self.A1.T, (self.A2 - y))
+        # delta1 = np.dot((self.A2 - y), self.W2.T)
+        # dCost_db1 =  np.dot(np.ones(N), delta1 * self.A1 * (1 - self.A1))
+        # dCost_dW1 = np.dot(self.X.T, delta1 * self.A1 * (1 - self.A1))
+
+        N = y.shape[0]
+        dL_dZ2 = (self.A2 - y)
+        dL_dW2 = self.A1.T @ dL_dZ2
+        ones = np.ones((N, 1))
+        dL_db2 = ones.T @ dL_dZ2
+        delta1 = dL_dZ2 @ self.W2.T
+        dsig = self.sigmoid(self.A1) * (1 - self.sigmoid(self.A1))
+        dL_dW1 = self.X.T @ (delta1 * dsig)
+        dL_db1 = ones.T @ (delta1 * dsig)
+
+        # Wights and biases update
+        self.W2 = self.W2 - self.learning_rate * dL_dW2
+        self.b2 = self.b2 - self.learning_rate * dL_db2
+        self.W1 = self.W1 - self.learning_rate * dL_dW1
+        self.b1 = self.b1 - self.learning_rate * dL_db1
+
+    def train(self, X, y, epochs):
+        for i in range(epochs):
+            y_pred = self.forward(X)
+            loss = self.entropy_loss(y, y_pred)
+            self.losses.append(loss)
+            self.backward(y)
+
+            # if i == 0 or i == nb_iterations-1:
+            #     print(f"Iteration: {i+1}")
+            #     print(tabulate(zip(X, y, [np.round(y_pred) for y_pred in self.A3] ), headers=["Input", "Actual", "Predicted"]))
+            #     print(f"Loss: {loss}")                
+            #     print("\n")
 
     def predict(self, X):
-        Z1 = X.dot(self.params['W1']) + self.params['b1']
-        A1 = self.relu(Z1)
-        Z2 = A1.dot(self.params['W2']) + self.params['b2']
-        pred = self.sigmoid(Z2)
-        return np.round(pred) 
-
-    def acc(self, y, yhat):
-        acc = int(sum(y == yhat) / len(y) * 100)
-        return acc
-
+        return np.round(self.forward(X))
 
     def plot_loss(self):
-        plt.plot(self.loss)
+        plt.plot(self.losses)
         plt.xlabel("Iteration")
-        plt.ylabel("logloss")
+        plt.ylabel("loss")
         plt.title("Loss curve for training")
         plt.show()

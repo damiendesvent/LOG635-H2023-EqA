@@ -20,12 +20,34 @@ categories = [
 ]
 
 Xtrain, Xtest, ytrain, ytest = split_dataset(data_root, categories)
-print(f"Shape of train set is {Xtrain.shape}")
-print(f"Shape of test set is {Xtest.shape}")
-print(f"Shape of train label is {ytrain.shape}")
-print(f"Shape of test labels is {ytest.shape}")
+print(f"Shape of Xtrain is {Xtrain.shape}")
+print(f"Shape of Xtest is {Xtest.shape}")
+print(f"Shape of ytrain is {ytrain.shape}")
+print(f"Shape of ytest is {ytest.shape}")
 
 
-nn = NeuralNetwork(layers=[40*40,10,8], learning_rate=0.01, iterations=500)
-nn.fit(Xtrain, ytrain)
+nn = NeuralNetwork(
+  nb_input_nodes=40*40,
+  nb_hidden_nodes=1500,
+  nb_output_nodes=8,
+  learning_rate=0.000001
+)
+nn.train(Xtrain, ytrain, epochs=10)
+correct_classification = 0
+wrong_classification = 0
+zero_classification = 0
+# for X, y in zip(Xtest[:10], ytest[:10]):
+#   X = np.array([X])
+#   print(nn.predict(X)[0], y)
+#   if np.array_equal(nn.predict(X)[0], y):
+#     correct_classification += 1
+#   elif np.array_equal(nn.predict(X)[0], [0, 0, 0, 0, 0, 0, 0, 0]):
+#     zero_classification += 1
+#   # elif np.array_equal(nn.predict(X), [0, 0, 0, 0, 0, 0, 0, 0]):
+#   #   zero_classification += 1
+#   else :
+#     wrong_classification += 1
 nn.plot_loss()
+# print(correct_classification, zero_classification, wrong_classification)
+print(f"Final loss: {nn.losses[-1]}")
+# print(nn.predict(Xtrain[5])[0], ytrain[5])
