@@ -12,7 +12,7 @@ def number_items(image, mode='canny') :
         for contour in contours :
             area = cv2.contourArea(contour)
             print(area)
-            if area < 1400 and area > 3:
+            if area < 1400 and area > 1:
                 contours_clean.append(contour)
                 x,y,w,h = cv2.boundingRect(contour)
                 cv2.rectangle(image_dilate, (x, y), (x + w, y + h), (36, 255, 12), 2)
@@ -35,7 +35,7 @@ def number_items(image, mode='canny') :
 
 
 
-img = cv2.imread('Labo_2/treated/Cercles/Cercle5/12_Cercle5.jpg')
+img = cv2.imread('Labo_2/output/clean/Cercles/Cercle5/12_Cercle5.jpg')
 
 #print(number_items(img)[1])
 
