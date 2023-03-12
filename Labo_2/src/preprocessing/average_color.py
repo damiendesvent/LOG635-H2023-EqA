@@ -23,6 +23,7 @@ def average_color(image):
 
 #for image in images:
 for i in os.listdir('Labo_2/output/clean/Diamants/Diamant5') :
+    print(str(i))
     image = cv2.imread('Labo_2/output/clean/Diamants/Diamant5/'+str(i))
     grey = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     #cv2.imshow('image', grey)
