@@ -3,27 +3,31 @@ from skimage.color import rgb2gray
 from skimage.filters import threshold_otsu
 from skimage.morphology import closing
 from skimage.measure import label, regionprops, regionprops_table
+from matplotlib import pyplot as plt
 import pandas as pd
 import numpy as np
 import os
 from IPython.display import display
+import seaborn as sn
 
 #pip install scikit-image
 #pip install -U scikit-learn scipy matplotlib
 #pip install pandas
 #pip install tqdm
 #pip install ipython
+#pip install seaborn
 #https://mattmaulion.medium.com/leaf-classification-an-image-processing-feature-extraction-approach-to-machine-learning-c0677e07da80
 
-image_path_list = os.listdir("Labo_2/output/clean/Diamants/Diamant5")
+image_path_list = os.listdir("Labo_2/output/clean/Cercles/Cercle2")
 df = pd.DataFrame()
 for i in range(len(image_path_list)):
    
   image_path = image_path_list[i]
-  image = rgb2gray(imread("Labo_2/output/clean/Diamants/Diamant5/"+image_path))
+  image = rgb2gray(imread("Labo_2/output/clean/Cercles/Cercle2/"+image_path))
   binary = image < threshold_otsu(image)
   binary = closing(binary)
   label_img = label(binary)
+  #print(image['area'])
   
   table = pd.DataFrame(regionprops_table(label_img, image,
                           ['convex_area', 'area', 'eccentricity',
@@ -59,6 +63,15 @@ for i in range(len(image_path_list)):
   df = pd.concat([df, table], axis=0)
 df.head()
 display(df)
+#df.plot.scatter(x='minor_axis_length',y='eccentricity')
+#plt.show()
+temp = df[['area','extent', 'eccentricity','perimeter_area_ratio','std_intensity', 'mean_intensity','perimeter', 'solidity', 'convex_area', 'iqr', 'euler_number', 'equivalent_diameter', 'orientation','inertia_tensor-0-0',
+           'moments_central-0-0','moments_central-0-2','moments_central-2-0','moments_central-2-2','moments_hu-2','moments_hu-6']]
+temp2 = df[['bbox-0','bbox-1','bbox-2','bbox-3']]
+corr_matrix = temp.corr()
+sn.heatmap(corr_matrix, annot=True)
+print(df.columns.tolist())
+plt.show()
 
 X = df.drop(columns=['label', 'image', 'real_images'])
 #features
