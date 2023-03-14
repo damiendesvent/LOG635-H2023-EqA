@@ -49,7 +49,7 @@ def count_each_shape(files, categories):
 
 def split_dataset(data_root, categories, sets_proportions):
     files = files_list(data_root)
-    factor = len(files) * augmentation_factor / sum(sets_proportions)
+    factor = len(files) / sum(sets_proportions)
     sets_sizes = list(map(lambda p : round(p * factor), sets_proportions))
     sets = []
     for s in sets_sizes:
@@ -59,7 +59,7 @@ def split_dataset(data_root, categories, sets_proportions):
         ))
     print(count_each_shape(files, categories))
     # access files out of order to prevent having all the same shapes in the test set
-    for (i, (label, image)) in enumerate(randomize(list(augment(files)), 305)):
+    for (i, (label, image)) in enumerate(randomize(list(addlabel(files)), 305)):
         # fill all sets up to their calculated size
         set = sets[list(map(lambda tot_size : i < tot_size, accumulate(sets_sizes))).index(True)]
         
