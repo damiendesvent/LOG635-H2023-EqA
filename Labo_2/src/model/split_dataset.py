@@ -1,12 +1,23 @@
 from itertools import accumulate
 import cv2
-from .files_list import files_list
+from glob import glob
 import numpy as np
-
 from os.path import basename, dirname
-from preprocessing.generate_variations import get_flat_variations
 
-augmentation_factor = 8
+def get_variations(image):
+    return (
+        image,
+        cv2.rotate(image, cv2.ROTATE_90_CLOCKWISE),
+        cv2.rotate(image, cv2.ROTATE_180),
+        cv2.rotate(image, cv2.ROTATE_90_COUNTERCLOCKWISE),
+        cv2.flip(image, 0),
+        cv2.rotate(cv2.flip(image, 0), cv2.ROTATE_90_CLOCKWISE),
+        cv2.rotate(cv2.flip(image, 0), cv2.ROTATE_180),
+        cv2.rotate(cv2.flip(image, 0), cv2.ROTATE_90_COUNTERCLOCKWISE),
+    )
+
+def files_list(root):
+    return glob(root + '/**/*.jpg', recursive=True)
 
 def one_hot_encode(category, categories):
     category_index = categories.index(category)
@@ -18,7 +29,7 @@ def augment(files):
     for filepath in files:
         label = basename(dirname(filepath))
         image = np.float32(cv2.cvtColor(cv2.imdecode(np.fromfile(filepath, dtype=np.uint8), cv2.IMREAD_UNCHANGED), cv2.COLOR_BGR2GRAY)) / 255
-        for v in get_flat_variations(image):
+        for v in get_variations(image):
             yield (label, v)
 
 def addlabel(files):
@@ -33,15 +44,6 @@ def randomize(list, seed):
     permutation = generator.permutation(length)
     for i in permutation:
         yield list[i]
-
-def modulo_shuffle(list, step):
-    length = len(list)
-    while length % step == 0:
-        step = step + 1
-    i = 0
-    while i != length - step:
-        yield list[i]
-        i = (i + step) % length
 
 def count_each_shape(files, categories):
     names = list(map(lambda f: basename(dirname(f)), files))
