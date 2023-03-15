@@ -5,6 +5,7 @@ from skimage.morphology import closing
 from skimage.measure import label, regionprops, regionprops_table
 import pandas as pd
 import numpy as np
+from matplotlib import pyplot as plt
 from IPython.display import display
 
 #pip install scikit-image
@@ -16,12 +17,14 @@ from IPython.display import display
 #https://mattmaulion.medium.com/leaf-classification-an-image-processing-feature-extraction-approach-to-machine-learning-c0677e07da80
 
 #image de test
-#image = "Labo_2/output/clean/Cercles/Cercle5/28_Cercle5.jpg"
+#image = "Labo_2/output/clean/Cercles/Cercle5/29_Cercle5.jpg"
 
 def solo_features(image):
     df = pd.DataFrame()
     image = rgb2gray(imread(image))
+
     binary = image < threshold_otsu(image)
+
     binary = closing(binary)
     label_img = label(binary)
 
